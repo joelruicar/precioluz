@@ -3,6 +3,7 @@ package com.precio.myapplication
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
+import android.util.Log
 import android.widget.RemoteViews
 import java.io.IOException
 import kotlinx.coroutines.*
@@ -14,6 +15,32 @@ data class Price(
     var price: String = "",
     var color: String = ""
 )
+
+fun getPricesFromWebsite(): List<Price> {
+    val priceList = mutableListOf<Price>()
+
+    try {
+        val doc = Jsoup.connect("https://tarifaluzhora.es/").get()
+
+        val allSpans = doc.select("span[itemprop='description']").map { it.text() }
+        val allPrices = doc.select("span[itemprop='price']").map { it.text() }
+        val backgroundColors = doc.select("div.template-tlh__colors--hours-circle").map { element ->
+            val classAttribute = element.attr("class")
+            extractBackgroundColor(classAttribute)
+        }
+
+        val combinedPrices = allSpans.zip(allPrices).zip(backgroundColors) { (time, price), color ->
+            Price(time, price, color)
+        }
+
+        priceList.addAll(combinedPrices)
+
+    } catch (e: IOException) {
+        e.printStackTrace()
+    }
+
+    return priceList
+}
 
 fun getPriceForCurrentHour(): Price? {
     return try {
@@ -61,6 +88,12 @@ fun extractBackgroundColor(classAttribute: String): String {
 
 class MyPriceWidgetProvider : AppWidgetProvider() {
 
+    override fun onEnabled(context: Context) {
+        super.onEnabled(context)
+        UpdateWidgetReceiver.scheduleWidgetUpdate(context)
+        Log.d("MyWidget", "onEnabled: Scheduled hourly update")
+    }
+
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
@@ -95,4 +128,6 @@ class MyPriceWidgetProvider : AppWidgetProvider() {
             }
         }
     }
+
+
 }
