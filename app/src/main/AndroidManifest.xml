@@ -22,7 +22,7 @@
             </intent-filter>
         </activity>
         <receiver
-            android:name="com.precio.myapplication.MyPriceWidgetProvider"
+            android:name="com.precio.myapplication.PriceWidgetProvider"
             android:exported="false">
 
         <intent-filter>
@@ -33,10 +33,6 @@
                 android:resource="@xml/widget_info"/>
         </receiver>
 
-        <receiver android:name=".UpdateWidgetReceiver" android:exported="true">
-            <intent-filter>
-                <action android:name="UPDATE_WIDGET" />
-            </intent-filter>
-        </receiver>
+
     </application>
 </manifest>

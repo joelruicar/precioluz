@@ -7,7 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import com.precio.myapplication.MyPriceWidgetProvider
+import com.precio.myapplication.PriceWidgetProvider
 import java.util.Calendar
 
 class UpdateWidgetReceiver : BroadcastReceiver() {
@@ -15,8 +15,8 @@ class UpdateWidgetReceiver : BroadcastReceiver() {
         if (intent.action == "UPDATE_WIDGET") {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(context,
-                MyPriceWidgetProvider::class.java))
-            MyPriceWidgetProvider().onUpdate(context, appWidgetManager, appWidgetIds)
+                PriceWidgetProvider::class.java))
+            PriceWidgetProvider().onUpdate(context, appWidgetManager, appWidgetIds)
         }
     }
 

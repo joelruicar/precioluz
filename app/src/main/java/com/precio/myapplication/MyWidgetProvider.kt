@@ -79,55 +79,33 @@ fun getPriceForCurrentHour(): Price? {
 
 fun extractBackgroundColor(classAttribute: String): String {
     return when {
-        classAttribute.contains("template-tlh__background-color-low") -> "precio bajo"
-        classAttribute.contains("template-tlh__background-color-default") -> "precio medio"
-        classAttribute.contains("template-tlh__background-color-high") -> "precio alto"
+        classAttribute.contains("template-tlh__background-color-low") -> "bajo"
+        classAttribute.contains("template-tlh__background-color-default") -> "medio"
+        classAttribute.contains("template-tlh__background-color-high") -> "alto"
         else -> "unknown"
     }
 }
 
-class MyPriceWidgetProvider : AppWidgetProvider() {
-
-    override fun onEnabled(context: Context) {
-        super.onEnabled(context)
-        UpdateWidgetReceiver.scheduleWidgetUpdate(context)
-        Log.d("MyWidget", "onEnabled: Scheduled hourly update")
-    }
-
+class PriceWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
     }
 
-    private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
+    fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
         CoroutineScope(Dispatchers.IO).launch {
-            val price = getPriceForCurrentHour()
+            val prices = getPricesFromWebsite()
             withContext(Dispatchers.Main) {
                 val views = RemoteViews(context.packageName, R.layout.widgetlayout)
-                if (price != null) {
-                    views.setTextViewText(R.id.horaTextView, price.time)
-                    views.setTextViewText(R.id.precioTextView, price.price)
-                    views.setTextViewText(R.id.colorTextView, price.color)
-
-                    val backgroundColorRes = when (price.color) {
-                        "precio bajo" -> R.color.low_color
-                        "precio medio" -> R.color.medium_color
-                        "precio alto" -> R.color.high_color
-                        else -> android.R.color.transparent
-                    }
-                    views.setInt(R.id.widgetLayout, "setBackgroundResource", backgroundColorRes)
-
-                } else {
-                    views.setTextViewText(R.id.horaTextView, "Error")
-                    views.setTextViewText(R.id.precioTextView, "Error")
-                    views.setTextViewText(R.id.colorTextView, "Error")
-                    views.setInt(R.id.widgetLayout, "setBackgroundResource", android.R.color.white) //Reset the background color
+                if (prices.isNotEmpty()) {
+                    // Actualiza las vistas del widget con los datos
+                    views.setTextViewText(R.id.horaTextView, prices[0].time)
+                    views.setTextViewText(R.id.precioTextView, prices[0].price)
+                    views.setTextViewText(R.id.colorTextView, prices[0].color)
                 }
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
         }
     }
-
-
 }
